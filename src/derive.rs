@@ -92,8 +92,8 @@ impl<'a> DerivedModule<'a> {
                     | TypeInner::Image { .. }
                     | TypeInner::Sampler { .. }
                     | TypeInner::Atomic { .. }
-                    | TypeInner::AccelerationStructure
-                    | TypeInner::RayQuery => ty.inner.clone(),
+                    | TypeInner::AccelerationStructure { .. }
+                    | TypeInner::RayQuery { .. } => ty.inner.clone(),
 
                     TypeInner::Pointer { base, space } => TypeInner::Pointer {
                         base: self.import_type(base),
@@ -406,6 +406,14 @@ impl<'a> DerivedModule<'a> {
                                     result: map_expr!(result),
                                 }
                             }
+                            naga::RayQueryFunction::GenerateIntersection { hit_t } => {
+                                naga::RayQueryFunction::GenerateIntersection {
+                                    hit_t: map_expr!(hit_t),
+                                }
+                            }
+                            naga::RayQueryFunction::ConfirmIntersection => {
+                                naga::RayQueryFunction::ConfirmIntersection
+                            }
                             naga::RayQueryFunction::Terminate => naga::RayQueryFunction::Terminate,
                         },
                     },
@@ -685,6 +693,12 @@ impl<'a> DerivedModule<'a> {
             Expression::WorkGroupUniformLoadResult { ty } => {
                 Expression::WorkGroupUniformLoadResult {
                     ty: self.import_type(ty),
+                }
+            }
+            Expression::RayQueryVertexPositions { query, committed } => {
+                Expression::RayQueryVertexPositions {
+                    query: map_expr!(query),
+                    committed: *committed,
                 }
             }
             Expression::RayQueryProceedResult => expr.clone(),
